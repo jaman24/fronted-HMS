@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const navigate = useNavigate(); // Initialize the navigate function
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -12,7 +14,7 @@ const Login: React.FC = () => {
         const loginData = { email, password };
 
         try {
-            const response = await fetch("https://localhost:8080/login", {
+            const response = await fetch("http://192.168.0.110:8000/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -26,7 +28,15 @@ const Login: React.FC = () => {
 
             const result = await response.json();
             setSuccess("Login successful!");
-            // Optionally, store tokens, redirect, or handle user session here
+
+            // Optionally, store tokens in localStorage
+            if (result.token) {
+                localStorage.setItem("authToken", result.token); // Store the token
+            }
+
+            // Redirect to home page after successful login
+            navigate("/"); // Redirect to path "/"
+
         } catch (error: unknown) {
             if (error instanceof Error) {
                 setError(error.message);

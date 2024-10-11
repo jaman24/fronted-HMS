@@ -1,5 +1,5 @@
-import { env } from "process";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Registration: React.FC = () => {
     const [fullname, setFullname] = useState("");
@@ -9,39 +9,44 @@ const Registration: React.FC = () => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    
+    const navigate = useNavigate(); // Add this hook
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        
+        e.preventDefault(); // Prevent form from submitting by default
+
         // Validate password confirmation
         if (password !== confirmPassword) {
             setError("Passwords do not match.");
             return;
         }
-    
+
         const userData = { fullname, email, phone, password };
-    
+
         try {
-            const response = await fetch("https://localhost:8080/registration", {
+            const response = await fetch("http://192.168.0.110:8000/auth/registration", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(userData),
+                body: JSON.stringify({ ...userData, full_name: userData.fullname }),
             });
-    
+
             if (!response.ok) {
                 throw new Error("Registration failed");
             }
-    
+
             const result = await response.json();
             setSuccess("Registration successful!");
 
-             // Set the token in local storage
-             if (result.token) {
+            // Set the token in local storage
+            if (result.token) {
                 localStorage.setItem("authToken", result.token); // Store the token
             }
-            // Optionally, redirect or reset form
+
+            // Redirect to the login page
+            navigate("/login");
+
         } catch (error: unknown) {
             if (error instanceof Error) {
                 setError(error.message); // Now we are sure it's an instance of Error
@@ -50,7 +55,6 @@ const Registration: React.FC = () => {
             }
         }
     };
-    
 
     return (
         <div className="container">
@@ -121,7 +125,7 @@ const Registration: React.FC = () => {
                 <button type="submit" className="btn btn-primary">Register</button>
             </form>
             <div className="mt-3">
-                <p>Already have an account? <a href="login">Login here</a>.</p>
+                <p>Already have an account? <a href="/login">Login here</a>.</p>
             </div>
         </div>
     );
